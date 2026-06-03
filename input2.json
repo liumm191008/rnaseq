@@ -1,0 +1,53 @@
+{
+  "RnaSeq.samples": [
+    {
+      "sample_id": "control_1",
+      "group": "control",
+      "read1_path": "/home/data/vip01/work/fastq/control_1_R1.fastq.gz",
+      "read2_path": "/home/data/vip01/work/fastq/control_1_R2.fastq.gz"
+    },
+    {
+      "sample_id": "control_2",
+      "group": "control",
+      "read1_path": "/home/data/vip01/work/fastq/control_2_R1.fastq.gz",
+      "read2_path": "/home/data/vip01/work/fastq/control_2_R2.fastq.gz"
+    },
+    {
+      "sample_id": "treatment_1",
+      "group": "treatment",
+      "read1_path": "/home/data/vip01/work/fastq/treatment_1_R1.fastq.gz",
+      "read2_path": "/home/data/vip01/work/fastq/treatment_1_R2.fastq.gz"
+    },
+    {
+      "sample_id": "treatment_2",
+      "group": "treatment",
+      "read1_path": "/home/data/vip01/work/fastq/treatment_2_R1.fastq.gz",
+      "read2_path": "/home/data/vip01/work/fastq/treatment_2_R2.fastq.gz"
+    }
+  ],
+  "RnaSeq.test1": "test1",
+  "RnaSeq.test2": "test2",
+  "RnaSeq.genome_fasta_path": "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.dna.toplevel.fa",
+  "RnaSeq.annotation_gtf_path": "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.115.gtf",
+  "RnaSeq.star_index_path": "",
+  "RnaSeq.output_dir": "/home/data/vip01/work/rnaseq_results",
+  "RnaSeq.enrichment_gene_id_type": "ENSEMBL",
+  "RnaSeq.enrichment_organism": "mouse",
+  "RnaSeq.fusion_ctat_lib_path": "",
+  "RnaSeq.threads": 8,
+  "RnaSeq.sjdb_overhang": 149,
+  "RnaSeq.min_count": 10,
+  "RnaSeq.padj_cutoff": 0.05,
+  "RnaSeq.log2fc_cutoff": 1.0,
+  "RnaSeq.docker_run": "docker run --rm --security-opt seccomp=unconfined  -v /home/data/vip01/work:/home/data/vip01/work",
+  "RnaSeq.fastqc_image": "registry.cn-guangzhou.aliyuncs.com/origen/fastqc",
+  "RnaSeq.trim_galore_image": "registry.cn-guangzhou.aliyuncs.com/origen/trim-galore",
+  "RnaSeq.star_image": "registry.cn-guangzhou.aliyuncs.com/origen/star",
+  "RnaSeq.subread_image": "registry.cn-guangzhou.aliyuncs.com/origen/subread",
+  "RnaSeq.multiqc_image": "registry.cn-guangzhou.aliyuncs.com/origen/multiqc",
+  "RnaSeq.differential_analysis_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor",
+  "RnaSeq.enrichment_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor",
+  "RnaSeq.rmats_image": "registry.cn-guangzhou.aliyuncs.com/origen/rmats",
+  "RnaSeq.star_fusion_image": "registry.cn-guangzhou.aliyuncs.com/origen/star-fusion",
+  "RnaSeq.coexpression_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
+}
