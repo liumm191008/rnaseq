@@ -1,0 +1,74 @@
+{
+  "RnaSeq.samples": [
+    {
+      "sample_id": "LPS1",
+      "group": "LPS",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503285-LPS1.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503285-LPS1.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "LPS2",
+      "group": "LPS",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503286-LPS2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503286-LPS2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "LPS3",
+      "group": "LPS",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503287-LPS3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503287-LPS3.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "exo1",
+      "group": "exo",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503288-exo1.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503288-exo1.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "exo2",
+      "group": "exo",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503289-exo2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503289-exo2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "exo3",
+      "group": "exo",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503290-exo3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503290-exo3.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "con1",
+      "group": "con",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503291-con1.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503291-con1.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "con2",
+      "group": "con",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503292-con2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503292-con2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "con3",
+      "group": "con",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503293-con3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503293-con3.R2.raw.fastq.gz"
+    }
+  ],
+  "RnaSeq.genome_fasta_path": "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.dna.toplevel.fa",
+  "RnaSeq.annotation_gtf_path": "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.115.gtf",
+  "RnaSeq.star_index_path": "/home/data/vip01/work/pipeline/database/mm39/star_index_seqlen150",
+  "RnaSeq.enrichment_gene_id_type": "ENSEMBL",
+  "RnaSeq.enrichment_organism": "mouse",
+  "RnaSeq.output_dir": "/home/data/vip01/work/bioproject/MJ20260515137/rnaseq_results",
+  "RnaSeq.docker_run": "docker run --rm --security-opt seccomp=unconfined  -v /home/data/vip01/work:/home/data/vip01/work",
+  "RnaSeq.threads": 8,
+  "RnaSeq.sjdb_overhang": 149,
+  "RnaSeq.min_count": 10,
+  "RnaSeq.padj_cutoff": 0.05,
+  "RnaSeq.log2fc_cutoff": 1.0,
+  "RnaSeq.fusion_ctat_lib_path": "",
+  "RnaSeq.rmats_image": "registry.cn-guangzhou.aliyuncs.com/origen/rmats",
+  "RnaSeq.star_fusion_image": "registry.cn-guangzhou.aliyuncs.com/origen/star-fusion",
+  "RnaSeq.coexpression_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
+}
