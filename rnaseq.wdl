@@ -13,6 +13,8 @@ struct RnaSeqSample {
 workflow RnaSeq {
   input {
     Array[RnaSeqSample] samples
+    String test1
+    String test2
     String genome_fasta_path = "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.dna.toplevel.fa"
     String annotation_gtf_path = "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.115.gtf"
     String star_index_path = ""
