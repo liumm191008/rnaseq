@@ -1,6 +1,5 @@
 version 1.0
 
-
 ## Paired-end RNA-seq sample definition.
 ## All paths must be absolute host paths available through the docker_run mount.
 struct RnaSeqSample {
@@ -19,7 +18,10 @@ workflow RnaSeq {
     String output_dir = "/home/data/vip01/work/rnaseq_results"
     String enrichment_gene_id_type = "ENSEMBL"
     String enrichment_organism = "mouse"
-    String fusion_ctat_lib_path = ""
+    String fusion_ctat_lib_path = "/home/data/vip01/work/pipeline/database/mm39/ctat_mm39_lib"
+    String fusion_plot_script_path = "/home/data/vip01/work/bioproject/MJ20260515137/scripts/plot_fusion_circos.py"
+    Float fusion_min_ffpm = 0.1
+    Int fusion_min_junction_reads = 1
     Int threads = 8
     Int sjdb_overhang = 149
     Int min_count = 10
@@ -36,6 +38,7 @@ workflow RnaSeq {
     String enrichment_image = "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
     String rmats_image = "registry.cn-guangzhou.aliyuncs.com/origen/rmats"
     String star_fusion_image = "registry.cn-guangzhou.aliyuncs.com/origen/star-fusion"
+    String fusion_plot_image = "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
     String coexpression_image = "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
   }
 
@@ -118,6 +121,7 @@ workflow RnaSeq {
   call DifferentialExpression {
     input:
       count_matrix_path = FeatureCounts.count_matrix_path,
+      annotation_gtf_path = annotation_gtf_path,
       sample_ids = current_sample_id,
       sample_groups = current_sample_group,
       output_dir = output_dir,
@@ -164,6 +168,17 @@ workflow RnaSeq {
       image = star_fusion_image
   }
 
+  call FusionVisualization {
+    input:
+      output_dir = output_dir,
+      organism = enrichment_organism,
+      script_path = fusion_plot_script_path,
+      min_ffpm = fusion_min_ffpm,
+      min_junction_reads = fusion_min_junction_reads,
+      docker_run = docker_run,
+      image = fusion_plot_image
+  }
+
   call CoexpressionNetwork {
     input:
       vst_count_matrix_path = DifferentialExpression.vst_count_matrix_path,
@@ -195,9 +210,15 @@ workflow RnaSeq {
     String de_summary = DifferentialExpression.de_summary_path
     String de_results_dir = DifferentialExpression.de_results_dir
     String vst_count_matrix = DifferentialExpression.vst_count_matrix_path
+    String normalized_count_matrix = DifferentialExpression.normalized_count_matrix_path
+    String fpkm_count_matrix = DifferentialExpression.fpkm_count_matrix_path
+    String tpm_count_matrix = DifferentialExpression.tpm_count_matrix_path
     String enrichment_results_dir = FunctionalEnrichment.enrichment_results_dir
     String alternative_splicing_dir = AlternativeSplicing.alternative_splicing_dir
     String fusion_results_dir = FusionGeneAnalysis.fusion_results_dir
+    String fusion_plot_dir = FusionVisualization.fusion_plot_dir
+    String fusion_heatmap_matrix = FusionVisualization.fusion_heatmap_matrix_path
+    String fusion_heatmap_plot = FusionVisualization.fusion_heatmap_plot_path
     String coexpression_results_dir = CoexpressionNetwork.coexpression_results_dir
     String coexpression_modules = CoexpressionNetwork.gene_module_path
     String coexpression_module_sizes = CoexpressionNetwork.module_sizes_path
@@ -336,6 +357,7 @@ task FeatureCounts {
 task DifferentialExpression {
   input {
     String count_matrix_path
+    String annotation_gtf_path
     Array[String] sample_ids
     Array[String] sample_groups
     String output_dir
@@ -355,6 +377,7 @@ task DifferentialExpression {
     suppressPackageStartupMessages(library(pheatmap))
 
     count_file <- "~{count_matrix_path}"
+    gtf_file <- "~{annotation_gtf_path}"
     output_dir <- "~{output_dir}"
     min_count <- ~{min_count}
     padj_cutoff <- ~{padj_cutoff}
@@ -377,6 +400,24 @@ task DifferentialExpression {
     rownames(metadata) <- metadata$sample_id
     write.table(metadata, file.path(de_dir, "sample_metadata.tsv"), sep = "\t", quote = FALSE, row.names = FALSE)
 
+    gtf <- read.delim(
+      gtf_file, comment.char = "#", header = FALSE, sep = "\t", quote = "",
+      col.names = c("seqname", "source", "type", "start", "end", "score", "strand", "frame", "attribute"),
+      stringsAsFactors = FALSE
+    )
+    gene_gtf <- gtf[gtf$type == "gene", "attribute", drop = TRUE]
+    extract_gtf_attribute <- function(attributes, key) {
+      has_key <- grepl(paste0(key, ' "'), attributes, fixed = TRUE)
+      values <- sub(paste0('.*', key, ' "([^"]+)".*'), '\\1', attributes)
+      values[!has_key] <- NA_character_
+      values
+    }
+    gtf_gene_ids <- extract_gtf_attribute(gene_gtf, "gene_id")
+    gtf_gene_symbols <- extract_gtf_attribute(gene_gtf, "gene_name")
+    valid_gtf_genes <- !is.na(gtf_gene_ids) & !duplicated(gtf_gene_ids)
+    gene_symbol_map <- setNames(gtf_gene_symbols[valid_gtf_genes], gtf_gene_ids[valid_gtf_genes])
+    rm(gtf)
+
     feature_counts <- read.delim(count_file, comment.char = "#", check.names = FALSE)
     if (!"Geneid" %in% colnames(feature_counts)) {
       stop("featureCounts output must contain a Geneid column")
@@ -386,6 +427,13 @@ task DifferentialExpression {
     }
 
     gene_ids <- feature_counts$Geneid
+    if (!"Length" %in% colnames(feature_counts)) {
+      stop("featureCounts output must contain a Length column for FPKM/TPM calculation")
+    }
+    gene_lengths <- suppressWarnings(as.numeric(feature_counts$Length))
+    if (any(!is.finite(gene_lengths)) || any(gene_lengths <= 0)) {
+      stop("featureCounts Length values must be finite positive numbers for FPKM/TPM calculation")
+    }
     count_data <- feature_counts[, 7:ncol(feature_counts), drop = FALSE]
     if (ncol(count_data) != length(sample_ids)) {
       stop(sprintf("count column number (%s) does not match sample number (%s)", ncol(count_data), length(sample_ids)))
@@ -395,6 +443,8 @@ task DifferentialExpression {
     count_data <- round(as.matrix(count_data))
     keep <- rowSums(count_data) >= min_count
     count_data <- count_data[keep, , drop = FALSE]
+    gene_lengths <- gene_lengths[keep]
+    names(gene_lengths) <- rownames(count_data)
     write.table(count_data, file.path(de_dir, "filtered_count_matrix.tsv"), sep = "\t", quote = FALSE, col.names = NA)
 
     if (length(unique(metadata$group)) < 2) {
@@ -405,6 +455,17 @@ task DifferentialExpression {
 
     dds <- DESeqDataSetFromMatrix(countData = count_data, colData = metadata, design = ~ group)
     dds <- DESeq(dds)
+
+    normalized_counts <- counts(dds, normalized = TRUE)
+    length_kb <- gene_lengths / 1000
+    library_size_millions <- colSums(count_data) / 1e6
+    fpkm_counts <- sweep(sweep(count_data, 1, length_kb, "/"), 2, library_size_millions, "/")
+    reads_per_kb <- sweep(count_data, 1, length_kb, "/")
+    tpm_counts <- sweep(reads_per_kb, 2, colSums(reads_per_kb), "/") * 1e6
+    write.table(normalized_counts, file.path(de_dir, "normalized_count_matrix.tsv"), sep = "\t", quote = FALSE, col.names = NA)
+    write.table(fpkm_counts, file.path(de_dir, "fpkm_count_matrix.tsv"), sep = "\t", quote = FALSE, col.names = NA)
+    write.table(tpm_counts, file.path(de_dir, "tpm_count_matrix.tsv"), sep = "\t", quote = FALSE, col.names = NA)
+
     vst_counts <- varianceStabilizingTransformation(dds, blind = FALSE)
     write.table(assay(vst_counts), file.path(de_dir, "vst_count_matrix.tsv"), sep = "\t", quote = FALSE, col.names = NA)
 
@@ -446,7 +507,11 @@ task DifferentialExpression {
       comparison_name <- paste0(group_b, "_vs_", group_a)
       res <- as.data.frame(results(dds, contrast = c("group", group_b, group_a)))
       res$gene_id <- rownames(res)
-      res <- res[, c("gene_id", setdiff(colnames(res), "gene_id"))]
+      gene_symbols <- unname(gene_symbol_map[res$gene_id])
+      gene_symbols[is.na(gene_symbols) | gene_symbols == ""] <- res$gene_id[is.na(gene_symbols) | gene_symbols == ""]
+      res_fpkm <- fpkm_counts[res$gene_id, , drop = FALSE]
+      colnames(res_fpkm) <- paste0("FPKM_", colnames(res_fpkm))
+      res <- cbind(gene_symbol = gene_symbols, gene_id = res$gene_id, res[, setdiff(colnames(res), "gene_id"), drop = FALSE], res_fpkm)
       res <- res[order(res$padj), ]
       all_path <- file.path(de_dir, paste0(comparison_name, ".all.tsv"))
       deg_path <- file.path(de_dir, paste0(comparison_name, ".deg.tsv"))
@@ -491,6 +556,9 @@ task DifferentialExpression {
     String de_summary_path = output_dir + "/differential_expression/pairwise_de_summary.tsv"
     String de_results_dir = output_dir + "/differential_expression"
     String vst_count_matrix_path = output_dir + "/differential_expression/vst_count_matrix.tsv"
+    String normalized_count_matrix_path = output_dir + "/differential_expression/normalized_count_matrix.tsv"
+    String fpkm_count_matrix_path = output_dir + "/differential_expression/fpkm_count_matrix.tsv"
+    String tpm_count_matrix_path = output_dir + "/differential_expression/tpm_count_matrix.tsv"
     String visualization_dir = output_dir + "/plots"
     String pca_plot_path = output_dir + "/plots/pca.pdf"
     String sample_distance_heatmap_path = output_dir + "/plots/sample_distance_heatmap.pdf"
@@ -656,6 +724,29 @@ task FusionGeneAnalysis {
 
   output {
     String fusion_results_dir = output_dir + "/fusion"
+  }
+}
+
+task FusionVisualization {
+  input {
+    String output_dir
+    String organism
+    String script_path
+    Float min_ffpm
+    Int min_junction_reads
+    String docker_run
+    String image
+  }
+
+  command <<<
+    set -euo pipefail
+    ~{docker_run} ~{image} bash -c "test -s '~{script_path}' && python3 '~{script_path}' --results-dir '~{output_dir}' --organism '~{organism}' --min-ffpm ~{min_ffpm} --min-junction-reads ~{min_junction_reads}"
+  >>>
+
+  output {
+    String fusion_plot_dir = output_dir + "/plots/fusion"
+    String fusion_heatmap_matrix_path = output_dir + "/plots/fusion/fusion_heatmap.tsv"
+    String fusion_heatmap_plot_path = output_dir + "/plots/fusion/fusion_heatmap.pdf"
   }
 }
 
