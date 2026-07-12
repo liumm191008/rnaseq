@@ -1,0 +1,56 @@
+{
+  "RnaSeq.samples": [
+    {
+      "sample_id": "N1_mix",
+      "group": "N",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1mixKE285-N1_mix.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1mixKE285-N1_mix.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "E1",
+      "group": "E",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503294-E1.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503294-E1.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "E2",
+      "group": "E",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503295-E2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503295-E2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "E3",
+      "group": "E",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503296-E3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503296-E3.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "N2",
+      "group": "N",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503298-N2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503298-N2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "N3",
+      "group": "N",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503299-N3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260515137/seq_data/rawdata/L1MLE1503299-N3.R2.raw.fastq.gz"
+    }
+  ],
+  "RnaSeq.genome_fasta_path": "/home/data/vip01/work/pipeline/database/hg38/Homo_sapiens.GRCh38.dna.toplevel.fa",
+  "RnaSeq.annotation_gtf_path": "/home/data/vip01/work/pipeline/database/hg38/Homo_sapiens.GRCh38.113.gtf",
+  "RnaSeq.star_index_path": "/home/data/vip01/work/pipeline/database/hg38/star_index_seqlen150",
+  "RnaSeq.enrichment_gene_id_type": "ENSEMBL",
+  "RnaSeq.enrichment_organism": "human",
+  "RnaSeq.output_dir": "/home/data/vip01/work/bioproject/MJ20260515137/rnaseq_results_human",
+  "RnaSeq.docker_run": "docker run --rm --security-opt seccomp=unconfined  -v /home/data/vip01/work:/home/data/vip01/work",
+  "RnaSeq.threads": 8,
+  "RnaSeq.sjdb_overhang": 149,
+  "RnaSeq.min_count": 10,
+  "RnaSeq.padj_cutoff": 0.05,
+  "RnaSeq.log2fc_cutoff": 1.0,
+  "RnaSeq.fusion_ctat_lib_path": "",
+  "RnaSeq.rmats_image": "registry.cn-guangzhou.aliyuncs.com/origen/rmats",
+  "RnaSeq.star_fusion_image": "registry.cn-guangzhou.aliyuncs.com/origen/star-fusion",
+  "RnaSeq.coexpression_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
+}
