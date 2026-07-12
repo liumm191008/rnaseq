@@ -1,0 +1,56 @@
+{
+  "RnaSeq.samples": [
+    {
+      "sample_id": "siFabp5_1",
+      "group": "siFabp5",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602091-siFabp5_1.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602091-siFabp5_1.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "siFabp5_2",
+      "group": "siFabp5",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602092-siFabp5_2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602092-siFabp5_2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "siFabp5_3",
+      "group": "siFabp5",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602093-siFabp5_3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602093-siFabp5_3.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "siNC_1",
+      "group": "siNC",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602088-siNC_1.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602088-siNC_1.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "siNC_2",
+      "group": "siNC",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602089-siNC_2.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602089-siNC_2.R2.raw.fastq.gz"
+    },
+    {
+      "sample_id": "siNC_3",
+      "group": "siNC",
+      "read1_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602090-siNC_3.R1.raw.fastq.gz",
+      "read2_path": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/seq_data/rawdata/L1MLG0602090-siNC_3.R2.raw.fastq.gz"
+    }
+  ],
+  "RnaSeq.genome_fasta_path": "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.dna.toplevel.fa",
+  "RnaSeq.annotation_gtf_path": "/home/data/vip01/work/pipeline/database/mm39/Mus_musculus.GRCm39.115.gtf",
+  "RnaSeq.star_index_path": "/home/data/vip01/work/pipeline/database/mm39/star_index_seqlen150",
+  "RnaSeq.enrichment_gene_id_type": "ENSEMBL",
+  "RnaSeq.enrichment_organism": "mouse",
+  "RnaSeq.output_dir": "/home/data/vip01/work/bioproject/MJ20260525060-lgl/rnaseq_results",
+  "RnaSeq.docker_run": "docker run --rm --security-opt seccomp=unconfined  -v /home/data/vip01/work:/home/data/vip01/work",
+  "RnaSeq.threads": 8,
+  "RnaSeq.sjdb_overhang": 149,
+  "RnaSeq.min_count": 10,
+  "RnaSeq.padj_cutoff": 0.05,
+  "RnaSeq.log2fc_cutoff": 1.0,
+  "RnaSeq.fusion_ctat_lib_path": "",
+  "RnaSeq.rmats_image": "registry.cn-guangzhou.aliyuncs.com/origen/rmats",
+  "RnaSeq.star_fusion_image": "registry.cn-guangzhou.aliyuncs.com/origen/star-fusion",
+  "RnaSeq.coexpression_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
+}
