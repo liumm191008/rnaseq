@@ -91,47 +91,8 @@ java -jar cromwell.jar run workflows/rna_seq.wdl --inputs docs/rna_seq.inputs.js
 
 The default output directory is `/home/data/vip01/work/rnaseq_results`.
 
-## Standalone TrimReads script
-
-For temporary direct execution outside WDL, run the generated Trim Galore script:
-
-```bash
-bash scripts/run_trimreads_MJ20260515137.sh
-```
-
-The script uses the same `/home/data/vip01/work` Docker mount, Trim Galore image, project FASTQ paths, output directory, and thread count as `input.json`.
-
-## Standalone StarAlign script
-
-After trimming has completed, run STAR alignment directly outside WDL with:
-
-```bash
-bash scripts/run_staralign_MJ20260515137.sh
-```
-
-The script reads `${OUTPUT_DIR}/trimmed/<sample>/<sample>_val_1.fq.gz` and `${OUTPUT_DIR}/trimmed/<sample>/<sample>_val_2.fq.gz`, uses the configured mm39 STAR index, and writes each sorted BAM to `${OUTPUT_DIR}/star/<sample>/<sample>.sorted.bam`.
-
-## Standalone scripts for every task
-
-For ad-hoc execution without Cromwell, this repository includes one shell helper per WDL task:
-
-1. Optional STAR index build: `bash scripts/run_buildstarindex_MJ20260515137.sh`
-2. Raw FastQC: `bash scripts/run_fastqc_MJ20260515137.sh raw`
-3. TrimReads / Trim Galore: `bash scripts/run_trimreads_MJ20260515137.sh`
-4. Trimmed FastQC: `bash scripts/run_fastqc_MJ20260515137.sh trimmed`
-5. STAR alignment: `bash scripts/run_staralign_MJ20260515137.sh`
-6. featureCounts: `bash scripts/run_featurecounts_MJ20260515137.sh` (the count matrix header is rewritten from BAM paths to sample IDs)
-7. Differential expression, VST matrix, and DE plots: `bash scripts/run_differential_expression_MJ20260515137.sh`
-8. GO/KEGG/Reactome enrichment with gene_cluster_enrich.R: `bash scripts/run_functional_enrichment_MJ20260515137.sh`
-9. Alternative splicing with rMATS: `bash scripts/run_alternative_splicing_MJ20260515137.sh`
-10. Fusion genes with STAR-Fusion plus heatmap/circos plots (mouse default CTAT library: `/home/data/vip01/work/pipeline/database/mm39/ctat_mm39_lib`): `bash scripts/run_fusion_gene_MJ20260515137.sh`
-11. Gene co-expression network with WGCNA from DESeq2 VST data: `bash scripts/run_coexpression_network_MJ20260515137.sh`
-12. MultiQC: `bash scripts/run_multiqc_MJ20260515137.sh`
-
-`run_fastqc_MJ20260515137.sh all` runs both raw and trimmed FastQC. FastQC runs with `--extract`, and `.zip` outputs are also explicitly decompressed in each sample FastQC directory so the extracted `*_fastqc/` result folders are available for direct inspection and downstream report delivery. Run the trimmed FastQC and downstream scripts only after the preceding scripts have produced their expected files.
-
-The differential-expression helpers create and append `${OUTPUT_DIR}/logs/differential_expression.<timestamp>.log` from inside the Docker container to avoid host-side permission problems on mounted project directories. R-based helpers run Docker with `-i` for heredoc stdin, otherwise `Rscript -` receives no script and exits immediately. If `counts/gene_counts.tsv` is missing or empty, the script stops immediately with a clear error in that log; run the matching `run_featurecounts_*` script first and then rerun differential expression.
-
+## inputs
+fusion_ctat_lib_path: defualt for human "/home/data/vip01/work/pipeline/database/hg38/ctat_hg38_lib";default for mouse "/home/data/vip01/work/pipeline/database/mm39/ctat_mm39_lib"
 
 ## Static Chinese HTML report
 
