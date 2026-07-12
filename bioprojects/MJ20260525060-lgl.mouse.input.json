@@ -49,7 +49,7 @@
   "RnaSeq.min_count": 10,
   "RnaSeq.padj_cutoff": 0.05,
   "RnaSeq.log2fc_cutoff": 1.0,
-  "RnaSeq.fusion_ctat_lib_path": "",
+  "RnaSeq.fusion_ctat_lib_path": "/home/data/vip01/work/pipeline/database/mm39/ctat_mm39_lib",
   "RnaSeq.rmats_image": "registry.cn-guangzhou.aliyuncs.com/origen/rmats",
   "RnaSeq.star_fusion_image": "registry.cn-guangzhou.aliyuncs.com/origen/star-fusion",
   "RnaSeq.coexpression_image": "registry.cn-guangzhou.aliyuncs.com/origen/bioconductor"
