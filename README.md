@@ -91,8 +91,7 @@ java -jar cromwell.jar run workflows/rna_seq.wdl --inputs docs/rna_seq.inputs.js
 
 The default output directory is `/home/data/vip01/work/rnaseq_results`.
 
-## inputs
-fusion_ctat_lib_path: defualt for human "/home/data/vip01/work/pipeline/database/hg38/ctat_hg38_lib";default for mouse "/home/data/vip01/work/pipeline/database/mm39/ctat_mm39_lib"
+The default fusion_ctat_lib_path for human is `/home/data/vip01/work/pipeline/database/hg38/ctat_hg38_lib`,and for mouse is `/home/data/vip01/work/pipeline/database/mm39/ctat_mm39_lib`
 
 ## Static Chinese HTML report
 
