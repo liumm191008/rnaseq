@@ -2,7 +2,7 @@
 
 ############################################################
 # Gene-list enrichment pipeline
-# Author: ChatGPT
+# Author: liumm
 # Version: gene-list stable offline KEGG
 ############################################################
 
@@ -22,7 +22,7 @@ usage <- function() {
         "    gene_id_type \\\n",
         "    organism \\\n",
         "    output_dir \\\n",
-        "    prefix\n\n",
+        "    prefix [background_gene_list.txt]\n\n",
         "Arguments:\n",
         "  gene_list.txt   Gene list file. Gene IDs may be one per line, or separated by comma/tab/space.\n",
         "                  Lines beginning with # are ignored. If a header named gene/gene_id/id is present,\n",
@@ -30,9 +30,12 @@ usage <- function() {
         "  gene_id_type    Input gene ID type in the selected OrgDb, e.g. ENTREZID, SYMBOL, ENSEMBL, REFSEQ.\n",
         "  organism        Species: mouse/mmu or human/hsa. This selects OrgDb and KEGG files automatically.\n",
         "  output_dir      Output directory.\n",
-        "  prefix          Output file prefix.\n\n",
+        "  prefix          Output file prefix.\n",
+        "  background_gene_list.txt  Optional background/universe gene list in the same gene_id_type.\n",
+        "                  If omitted, enrichment uses the default package/database background.\n\n",
         "Outputs:\n",
         "  output_dir/<prefix>_gene_id_mapping.csv       Input gene IDs mapped to ENTREZID/SYMBOL.\n",
+        "  output_dir/<prefix>_background_gene_id_mapping.csv  Optional background gene IDs mapped to ENTREZID/SYMBOL.\n",
         "  output_dir/<prefix>_GO.csv                    GO BP enrichment table with RichFactor.\n",
         "  output_dir/<prefix>_GO_classification.csv     GO level-2 classification table.\n",
         "  output_dir/<prefix>_KEGG.csv                  KEGG enrichment table with class metadata, pathway link, RichFactor, and symbol geneID.\n",
@@ -65,6 +68,29 @@ validate_file <- function(path, label) {
 write_result <- function(result_df, path) {
     write.csv(result_df, path, row.names = FALSE)
     log_step("Wrote ", nrow(result_df), " rows: ", path)
+}
+
+as_enrich_df <- function(enrich_result) {
+    if (is.null(enrich_result)) {
+        return(data.frame())
+    }
+
+    result_df <- as.data.frame(enrich_result)
+    if (is.null(result_df)) {
+        return(data.frame())
+    }
+
+    result_df
+}
+
+ensure_columns <- function(result_df, columns) {
+    for (column in columns) {
+        if (!column %in% colnames(result_df)) {
+            result_df[[column]] <- character(nrow(result_df))
+        }
+    }
+
+    result_df
 }
 
 empty_kegg_class_df <- function() {
@@ -356,6 +382,10 @@ coalesce_text <- function(primary, fallback) {
 }
 
 normalize_kegg_description_columns <- function(kegg_df) {
+    if (!"ID" %in% colnames(kegg_df)) {
+        kegg_df$ID <- character(nrow(kegg_df))
+    }
+
     if ("Description.y" %in% colnames(kegg_df) && "Description.x" %in% colnames(kegg_df)) {
         kegg_df$Description <- coalesce_text(kegg_df$Description.y, kegg_df$Description.x)
         kegg_df$Description.x <- NULL
@@ -449,6 +479,10 @@ parse_ratio_numerator <- function(ratio) {
 }
 
 add_rich_factor <- function(result_df) {
+    if (is.null(result_df)) {
+        result_df <- data.frame()
+    }
+
     if (nrow(result_df) == 0) {
         result_df$RichFactor <- numeric(0)
         return(result_df)
@@ -740,7 +774,7 @@ plot_go_classification_bar <- function(go_class_df, plot_dir, prefix,
 }
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 5) {
+if (!(length(args) %in% c(5, 6))) {
     usage()
     quit(save = "no", status = 1)
 }
@@ -753,10 +787,14 @@ gson_file <- organism_config$gson_file
 class_file <- organism_config$class_file
 outdir <- args[4]
 prefix <- args[5]
+background_file <- if (length(args) == 6) args[6] else ""
 
 validate_file(gene_file, "Gene list file")
 validate_file(gson_file, "KEGG gson file")
 validate_file(class_file, "KEGG class file")
+if (nzchar(background_file)) {
+    validate_file(background_file, "Background gene list file")
+}
 log_step("Organism: ", organism_config$label, " (KEGG ", organism_config$kegg_code, ", OrgDb ", organism_config$orgdb_package, ")")
 log_step("Using KEGG gson: ", gson_file)
 log_step("Using KEGG class file: ", class_file)
@@ -789,18 +827,47 @@ if (length(genes) == 0) {
     stop("No input genes could be converted to ENTREZID", call. = FALSE)
 }
 
+background_genes <- NULL
+if (nzchar(background_file)) {
+    log_step("Reading background genes: ", background_file)
+    input_background_genes <- read_gene_list(background_file)
+    log_step("Background genes parsed: ", length(input_background_genes))
+
+    if (length(input_background_genes) == 0) {
+        stop("No genes found in background gene list", call. = FALSE)
+    }
+
+    log_step("Converting background ", gene_id_type, " genes to ENTREZID")
+    background_mapping <- convert_genes_to_entrez(input_background_genes, gene_id_type, orgdb)
+    write_result(
+        background_mapping,
+        file.path(outdir, paste0(prefix, "_background_gene_id_mapping.csv"))
+    )
+
+    background_genes <- unique(background_mapping$ENTREZID)
+    background_genes <- background_genes[!is.na(background_genes) & nzchar(background_genes)]
+    log_step("Unique background ENTREZID genes: ", length(background_genes))
+
+    if (length(background_genes) == 0) {
+        stop("No background genes could be converted to ENTREZID", call. = FALSE)
+    }
+} else {
+    log_step("No background gene list provided; using default enrichment background")
+}
+
 log_step("Running GO BP enrichment")
 ego <- enrichGO(
     gene = genes,
     OrgDb = orgdb,
     keyType = "ENTREZID",
     ont = "BP",
+    universe = background_genes,
     pAdjustMethod = "BH",
     pvalueCutoff = 0.05,
     qvalueCutoff = 0.05,
     readable = TRUE
 )
-go_df <- add_rich_factor(as.data.frame(ego))
+go_df <- add_rich_factor(as_enrich_df(ego))
 write_result(go_df, file.path(outdir, paste0(prefix, "_GO.csv")))
 
 log_step("Running GO classification")
@@ -816,10 +883,11 @@ kegg <- enricher(
     gene = genes,
     TERM2GENE = kk_gson@gsid2gene,
     TERM2NAME = kk_gson@gsid2name,
+    universe = background_genes,
     pvalueCutoff = 0.05,
     pAdjustMethod = "BH"
 )
-kegg_df <- add_rich_factor(as.data.frame(kegg))
+kegg_df <- add_rich_factor(as_enrich_df(kegg))
 
 log_step("Adding KEGG categories")
 class_df <- prepare_kegg_class_df(
@@ -827,10 +895,15 @@ class_df <- prepare_kegg_class_df(
     kk_gson = kk_gson
 )
 
-kegg_df$.enrich_order <- seq_len(nrow(kegg_df))
-kegg_df <- merge(class_df, kegg_df, by = "ID", all.y = TRUE, sort = FALSE)
-kegg_df <- kegg_df[order(kegg_df$.enrich_order), , drop = FALSE]
-kegg_df$.enrich_order <- NULL
+if (nrow(kegg_df) > 0 && "ID" %in% colnames(kegg_df)) {
+    kegg_df$.enrich_order <- seq_len(nrow(kegg_df))
+    kegg_df <- merge(class_df, kegg_df, by = "ID", all.y = TRUE, sort = FALSE)
+    kegg_df <- kegg_df[order(kegg_df$.enrich_order), , drop = FALSE]
+    kegg_df$.enrich_order <- NULL
+} else {
+    log_step("No KEGG enrichment terms found; writing empty KEGG outputs")
+    kegg_df <- ensure_columns(kegg_df, c("ID", "Description", "geneID"))
+}
 kegg_df <- normalize_kegg_description_columns(kegg_df)
 kegg_df <- add_kegg_pathway_links(kegg_df, organism = organism_config$kegg_code)
 kegg_df <- replace_kegg_gene_ids_with_symbols(kegg_df, orgdb)
@@ -845,12 +918,13 @@ log_step("Running Reactome pathway enrichment")
 reactome <- ReactomePA::enrichPathway(
     gene = genes,
     organism = organism_config$reactome_organism,
+    universe = background_genes,
     pvalueCutoff = 0.05,
     pAdjustMethod = "BH",
     qvalueCutoff = 0.05,
     readable = TRUE
 )
-reactome_df <- add_rich_factor(as.data.frame(reactome))
+reactome_df <- add_rich_factor(as_enrich_df(reactome))
 write_result(reactome_df, file.path(outdir, paste0(prefix, "_Reactome.csv")))
 
 plot_enrichment(ego, go_df, plot_dir, prefix, "GO", draw_barplot = FALSE)
