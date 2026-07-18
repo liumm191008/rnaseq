@@ -1,5 +1,6 @@
 version 1.0
 
+
 ## Paired-end RNA-seq sample definition.
 ## All paths must be absolute host paths available through the docker_run mount.
 struct RnaSeqSample {
